@@ -45,7 +45,8 @@ func main() {
 	pwd, err := os.Getwd()
 	panicOnErr(err)
 	pkgFolder := filepath.Join(filepath.Dir(pwd), "pkg")
-	run(fmt.Sprintf("docker run -v %s:/defs namely/protoc-all -f geo_location.proto -l go -o .", pkgFolder))
+	fileName := filepath.Base(protoPath)
+	run(fmt.Sprintf("docker run -v %s:/defs namely/protoc-all -f %s -l go -o .", pkgFolder, fileName))
 
 	// For the sake of the example, we only need the first service defined:
 	srv := first(protoDef.Services)
