@@ -13,7 +13,8 @@ import (
 )
 
 type ReplyModel struct {
-	Service     *proto_reader.Service
+	Name        string
+	Methods     map[string]*proto_reader.Method
 	Messages    map[string]*proto_reader.Message
 	Port        int32
 	PackageName string
@@ -46,9 +47,24 @@ func main() {
 	pkgFolder := filepath.Join(filepath.Dir(pwd), "pkg")
 	run(fmt.Sprintf("docker run -v %s:/defs namely/protoc-all -f geo_location.proto -l go -o .", pkgFolder))
 
+	// For the sake of the example, we only need the first service defined:
+	srv := first(protoDef.Services)
+
+	// We converting the protobuf lower-case field names to be capitalized:
+	for _, v := range srv.Methods {
+		for fk, _ := range v.Input.Fields {
+			v.Input.Fields[fk].Name = strings.Title(v.Input.Fields[fk].Name)
+		}
+
+		for fk, _ := range v.Output.Fields {
+			v.Output.Fields[fk].Name = strings.Title(v.Output.Fields[fk].Name)
+		}
+	}
+
 	// Build the reply model:
 	reply := ReplyModel{
-		Service:     first(protoDef.Services),
+		Name:        srv.Name,
+		Methods:     srv.Methods,
 		Messages:    protoDef.Messages,
 		Port:        int32(port),
 		PackageName: packageName,
